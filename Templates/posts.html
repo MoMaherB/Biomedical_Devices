@@ -1,0 +1,37 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+<div class="container text-center">
+
+	{% if all_posts %}
+	{% for post in all_posts %}
+	<div class="transparent-box border rounded p-3 bg-light">
+		<h1>{{ post.id }}. {{ post.title }}</h1>
+		<h4>{{ post.name }}</h4>
+		<div class="row">
+			<div class="col">
+				<div class="transparent-box border rounded p-3 bg-light">
+				<p id="descreption"> {{ post.post }}</p>
+				</div>
+			</div>
+			<div class="col">
+				<div class="image-container">
+					<img src="static/images/{{post.id}}.jpg" class="rounded float-end rounded-image" alt="...">
+				</div>
+			</div>
+		</div>
+
+		<a href="{{ url_for('update_post', id=post.id) }}"><button type="button"
+				class="btn btn-outline-warning">Update</button></a>
+		<a href="{{ url_for('delete_post', id=post.id) }}"><button type="button"
+				class="btn btn-outline-danger">Delete</button></a>
+	
+	<br />
+
+	{% endfor %}
+	{% else %}
+	<h1> There is no Posts To Show!!!</h1>
+	{% endif %}
+</div>
+{% endblock %}

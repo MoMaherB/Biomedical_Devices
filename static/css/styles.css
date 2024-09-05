@@ -1,0 +1,29 @@
+/* Add these styles to your CSS file or within a <style> tag in layout.html */
+.post-container {
+    transition: background-color 0.3s ease, transform 0.3s ease; /* Smooth transition for background color and scale */
+}
+
+.post-container:hover {
+    background-color: #20252a; /* Lighter background color on hover */
+    transform: scale(1.02); /* Slightly increase the size on hover */
+}
+
+.image-container {
+	width: 700px;
+    height: 400px;
+    display: flex;
+	justify-content: center;
+    height: 100vh; /* Optional, just for centering the image */
+}
+
+.rounded-image {
+    width: 600px;
+    height:400px;
+    border-radius:80px; /* Slightly rounded corners */
+    border: 1px solid #b9b4b4;
+}
+
+#descreption {
+	text-align: center;
+	font-size: 18px;
+}
