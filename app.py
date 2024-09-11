@@ -1,81 +1,69 @@
-from flask import Flask, render_template, url_for, flash, redirect
-from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField, TextAreaField
-from wtforms.validators import DataRequired
-from wtforms.widgets import TextArea
-from datetime import datetime
+from flask import Flask, render_template, redirect, flash, url_for
 from flask_sqlalchemy import SQLAlchemy
+from datetime import datetime
+from flask_wtf import FlaskForm
+from wtforms import StringField, SubmitField, PasswordField
+from wtforms.validators import DataRequired
+
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = "My Secret Key"
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///posts.db'
+
+app.config["SECRET_KEY"] = "secret"
+app.config["SQLALCHEMY_DATABASE_URI"] = 'sqlite:///portfolio.db'
 
 db = SQLAlchemy(app)
 
+class UserForm(FlaskForm):
+	user_name = StringField("User Name", validators=[DataRequired()])
+	password = PasswordField("Password", validators=[DataRequired()])
+	submit = SubmitField("Log In")
 
-class Posts(db.Model):
-    id = db.Column(db.Integer, primary_key=True) 
-    name = db.Column(db.String(120), nullable=False)
-    title = db.Column(db.String(200), nullable=False)
-    post = db.Column(db.Text, nullable=False)
-    time_created = db.Column(db.DateTime, default=datetime.utcnow)
+class User(db.Model):
+	id = db.Column(db.Integer, primary_key=True) 
+	user_name = db.Column(db.String(120), nullable=False, unique=True)
+	password = db.Column(db.String(120), nullable=False)
 
 
-class PostForm(FlaskForm):
-	name = StringField('Name', validators=[DataRequired()])
-	post = TextAreaField('Post', validators=[DataRequired()],widget=TextArea())
-	title = StringField('Title', validators=[DataRequired()])
-	submit = SubmitField('Submit')
+	def __repr__(self):
+		return f"User Name: {self.user_name}. Password: {self.password}"
+	
+
 
 @app.route('/')
-def index():
-	return render_template("index.html")
+@app.route('/home')
+def home():
+	return render_template('home.html')
 
-@app.route('/create_post', methods=["POST", "GET"])
-def create_post():
-	form = PostForm()
+
+@app.route('/login', methods=["GET", "POST"])
+def login():
+	form = UserForm()
 	if form.validate_on_submit():
-		name = form.name.data
-		post = form.post.data
-		title = form.title.data
-		post_created = Posts(name=name, post=post, title=title)
-		db.session.add(post_created)
-		db.session.commit()
-		flash(f'Hi {name}. You posted succesfully!!', 'success')	
-		return redirect('posts')
-	return render_template('create_post.html', form=form)
-
-@app.route('/posts')
-def posts():
-	all_posts = Posts.query.order_by(Posts.time_created).all()
-	return render_template("posts.html", all_posts=all_posts)
-
-@app.route('/delete/<int:id>')
-def delete_post(id):
-	post_to_delete = Posts.query.get_or_404(id)
-	db.session.delete(post_to_delete)
-	db.session.commit()
-	flash(f"Post {id} deleted!!", 'danger')
-	return redirect(url_for('posts'))
-
-@app.route('/update/<int:id>', methods=["POST", "GET"])
-def update_post(id):
-	post_to_update = Posts.query.get_or_404(id)
-	form = PostForm(name=post_to_update.name, title=post_to_update.title, post=post_to_update.post)
-	if form.validate_on_submit():
-		post_to_update.name = form.name.data
-		post_to_update.title = form.title.data
-		post_to_update.post = form.post.data
-		db.session.commit()
-		flash(f'You updated!!', 'warning')	
-		return redirect(url_for('posts'))
-	return render_template("update_post.html", form=form, post_to_update=post_to_update)
+		user = User.query.filter_by(user_name=form.user_name.data).first()
+		if user:
+			if user.password == form.password.data:
+				flash("You are logged in successfuly", "success")
+				return redirect('/dashboard')
+			else:
+				flash("Wrong Password. Please try again!", "danger")
+				return redirect(url_for('login'))
+		else:
+			flash("Wrong Username. Please try again!", "danger")
+			return redirect(url_for('login'))
 		
+	return render_template('/login.html', form=form)
 
+@app.route('/dashboard')
+def dashboard():
+	return render_template("dashboard.html")
 
+@app.route('/departments')
+def departments():
+	return render_template("departments.html")
 
-
-
+@app.route('/about')
+def about():
+	return render_template("about.html")
 
 if __name__ == "__main__":
-	app.run(debug=True, host="0.0.0.0", port=5000)
+	app.run(debug=True)
